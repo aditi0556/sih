@@ -1,10 +1,14 @@
-from fastapi import APIRouter, Depends, HTTPException
+from datetime import date
+
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from db.database import get_db
+from models.dustbin import Dustbin
 from models.user import User
 from dependencies import require_admin
 from schemas.user import UserOut, PromoteRequest
+from services.pre_calculation import predict_dustbin_fill_for_date
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -47,3 +51,29 @@ def demote_to_user(
     db.commit()
     db.refresh(user)
     return user
+
+
+@router.post("/predict-dustbins")
+def predict_dustbins_for_date(
+    prediction_date: date | None = Query(default=None, description="Date in YYYY-MM-DD format"),
+    db: Session = Depends(get_db),
+    _admin: User = Depends(require_admin),
+):
+    """Predict fill percentage for every dustbin using the saved ML pipeline and date features."""
+    target_date = prediction_date or date.today()
+
+    if not db.query(Dustbin).first():
+        raise HTTPException(status_code=404, detail="No dustbins found in the database")
+
+    predictions = predict_dustbin_fill_for_date(db, target_date)
+
+    return {
+        "prediction_date": str(target_date),
+        "results": [
+            {
+                "dustbin_id": item["dustbin_id"],
+                "predicted_fill_percentage": float(item["predicted_fill_percentage"]),
+            }
+            for item in predictions
+        ],
+    }

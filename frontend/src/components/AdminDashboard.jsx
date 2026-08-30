@@ -11,19 +11,20 @@ const MANGALURU_BOUNDS = [
   [13.05, 74.97],
 ]
 
-function redPinIcon(L) {
+function dustbinIcon(L) {
   return L.divIcon({
     className: '',
-    html: `<svg width="24" height="34" viewBox="0 0 24 34" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12 0C5.4 0 0 5.4 0 12c0 9 12 22 12 22s12-13 12-22c0-6.6-5.4-12-12-12z" fill="#ef4444"/>
-      <circle cx="12" cy="12" r="4.5" fill="#fff"/>
+    html: `<svg width="22" height="26" viewBox="0 0 22 26" xmlns="http://www.w3.org/2000/svg">
+      <rect x="3" y="6" width="16" height="18" rx="1.5" fill="#ef4444"/>
+      <path d="M1 6h20" stroke="#ef4444" stroke-width="2" stroke-linecap="round"/>
+      <path d="M8 2h6a2 2 0 0 1 2 2v2H6V4a2 2 0 0 1 2-2z" fill="#ef4444"/>
+      <path d="M8 10v11M11 10v11M14 10v11" stroke="#fff" stroke-width="1.4" stroke-linecap="round"/>
     </svg>`,
-    iconSize: [24, 34],
-    iconAnchor: [12, 34],
-    popupAnchor: [0, -30],
+    iconSize: [22, 26],
+    iconAnchor: [11, 26],
+    popupAnchor: [0, -22],
   })
 }
-
 function loadLeaflet() {
   if (window.L) return Promise.resolve(window.L)
 
@@ -122,7 +123,7 @@ export default function AdminDashboard() {
     const L = window.L
     markersRef.current.forEach((m) => m.remove())
     markersRef.current = dustbins.map((bin) =>
-      L.marker([bin.latitude, bin.longitude], { icon: redPinIcon(L) }).addTo(mapRef.current)
+      L.marker([bin.latitude, bin.longitude], { icon: dustbinIcon(L) }).addTo(mapRef.current)
     )
 
     return () => {

@@ -5,6 +5,7 @@ import Hero from './components/Hero'
 import FeaturesCloud from './components/FeaturesCloud'
 import LoginPage from './components/LoginPage'
 import SignupPage from './components/SignupPage'
+import AdminDashboard from './components/AdminDashboard'
 
 function LandingPage() {
   return (
@@ -32,6 +33,15 @@ function App() {
                 <div className="min-h-screen bg-black flex items-center justify-center">
                   <p className="text-white/50 text-lg">Dashboard coming soon…</p>
                 </div>
+              </>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <>
+                <Navbar />
+                <AdminDashboard />
               </>
             }
           />

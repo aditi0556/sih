@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Menu, X, Trash2, LogOut, LayoutDashboard } from 'lucide-react'
+import { Menu, X, Trash2, LogOut, LayoutDashboard, ShieldCheck } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 export default function Navbar() {
@@ -8,6 +8,7 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
   const { session, signOut } = useAuth()
   const navigate = useNavigate()
+  const isAdmin = session?.user?.role === 'admin'
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 10)
@@ -66,6 +67,15 @@ export default function Navbar() {
           <div className="hidden md:flex items-center gap-3">
             {session ? (
               <>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    className="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-all duration-200"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   className="flex items-center gap-2 px-4 py-2 text-sm text-white/80 hover:text-white rounded-lg hover:bg-white/10 transition-all duration-200"
@@ -128,6 +138,15 @@ export default function Navbar() {
             </a>
             {session ? (
               <>
+                {isAdmin && (
+                  <Link
+                    to="/admin"
+                    onClick={() => setIsOpen(false)}
+                    className="block px-4 py-2 text-sm text-white/70 hover:text-white hover:bg-white/10 rounded-lg transition"
+                  >
+                    Admin
+                  </Link>
+                )}
                 <Link
                   to="/dashboard"
                   onClick={() => setIsOpen(false)}

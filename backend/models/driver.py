@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 
-from backend.models.base import Base
+from models.base import Base
 
 
 class Driver(Base):

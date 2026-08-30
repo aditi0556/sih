@@ -6,7 +6,7 @@ from sqlalchemy import (
     ForeignKey
 )
 
-from backend.models.base import Base
+from models.base import Base
 
 
 class DailyPrediction(Base):

@@ -32,7 +32,7 @@ export default function LoginPage() {
       if (result.error) {
         setError(result.error.message || 'Invalid email or password')
       } else {
-        navigate('/')
+        navigate('/dashboard')
       }
     } catch (err) {
       setError('Something went wrong. Please try again.')

@@ -1,0 +1,47 @@
+/* DriverDashboard.css — component-scoped styles for the driver dashboard */
+
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 15px rgba(74, 222, 128, 0.3); }
+  50%       { box-shadow: 0 0 30px rgba(74, 222, 128, 0.6); }
+}
+
+/* Glassmorphism card — neutral */
+.glass-panel {
+  background: rgba(18, 18, 20, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Glassmorphism card — green accent glow for the progress/CTA block */
+.glass-panel-glow {
+  background: linear-gradient(135deg, rgba(24, 24, 27, 0.8) 0%, rgba(12, 12, 14, 0.9) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Pulsing glow on the Start Route button */
+.start-route-btn-glow {
+  animation: pulse-glow 3s infinite ease-in-out;
+}
+
+/* Smooth progress bar fill transition */
+.progress-bar-fill {
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Custom Leaflet Dark Theme Styles */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #18181b !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6) !important;
+}
+
+.leaflet-container {
+  font-family: inherit !important;
+  background-color: #0a0a0c !important;
+}

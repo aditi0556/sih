@@ -27,11 +27,12 @@ export default function Hero() {
 
         {/* Main title */}
         <h1 className="text-6xl sm:text-7xl md:text-8xl font-black text-white tracking-tight leading-none mb-6">
-          Care
+          Clean
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-400 to-emerald-300">
-            India
+            ix
           </span>
         </h1>
+
 
         {/* Tagline */}
         <p className="text-lg sm:text-xl md:text-2xl text-white/70 font-light max-w-2xl mx-auto leading-relaxed mb-4">

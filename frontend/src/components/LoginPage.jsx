@@ -301,8 +301,9 @@ export default function LoginPage() {
         <p className="text-center text-white/40 text-xs">
           Don&apos;t have an account?{' '}
           <Link to="/signup" className="text-green-400 hover:text-green-300 font-medium">
-            Sign up for CareIndia
+            Sign up for Cleanix
           </Link>
+
         </p>
       </div>
     </div>

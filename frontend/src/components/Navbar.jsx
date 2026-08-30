@@ -46,9 +46,10 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <span className="text-white font-bold text-xl tracking-tight">
-              Care<span className="text-green-400">India</span>
+              Clean<span className="text-green-400">ix</span>
             </span>
           </Link>
+
 
           {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-1">

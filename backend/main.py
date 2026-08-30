@@ -3,13 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from core.config import settings
 from db.database import Base, engine
-from routers import auth, admin, dustbins, hotspots
-
+from routers import auth, admin, dustbins, hotspots, predictions
 
 # Creates tables on startup. Swap for Alembic migrations once the schema stabilizes.
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="SIH Auth & Routing API")
+app = FastAPI(title="SIH Auth API")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,9 +20,9 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(admin.router)
-
 app.include_router(dustbins.router)
 app.include_router(hotspots.router)
+app.include_router(predictions.router)
 
 
 @app.get("/health")

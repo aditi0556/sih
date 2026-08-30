@@ -2,6 +2,7 @@ from datetime import date
 
 from db.database import SessionLocal
 
+from models.user import User
 from models.truck import Truck
 from models.dustbin import Dustbin
 from models.driver import Driver
@@ -10,12 +11,68 @@ from models.route import Route
 
 
 def seed_database():
+
     db = SessionLocal()
 
     try:
 
         # =========================================================
-        # TRUCKS
+        # 1. USERS
+        # =========================================================
+
+        users = [
+            User(
+                id=1,
+                name="Admin",
+                email="admin@sih.com",
+                hashed_password="dummy_admin_hash",
+                google_id=None,
+                role="admin",
+            ),
+
+            User(
+                id=2,
+                name="Arjun Kumar",
+                email="arjun@sih.com",
+                hashed_password="dummy_hash_1",
+                google_id=None,
+                role="user",
+            ),
+
+            User(
+                id=3,
+                name="Rahul Shetty",
+                email="rahul@sih.com",
+                hashed_password="dummy_hash_2",
+                google_id=None,
+                role="user",
+            ),
+
+            User(
+                id=4,
+                name="Vikram Rao",
+                email="vikram@sih.com",
+                hashed_password="dummy_hash_3",
+                google_id=None,
+                role="user",
+            ),
+
+            User(
+                id=5,
+                name="Suresh Naik",
+                email="suresh@sih.com",
+                hashed_password="dummy_hash_4",
+                google_id=None,
+                role="user",
+            ),
+        ]
+
+        db.add_all(users)
+        db.flush()
+
+
+        # =========================================================
+        # 2. TRUCKS
         # =========================================================
 
         trucks = [
@@ -27,6 +84,7 @@ def seed_database():
                 latitude=12.872114,
                 longitude=74.843407,
             ),
+
             Truck(
                 truck_id=2,
                 vehicle_number="KA19CD5678",
@@ -35,6 +93,7 @@ def seed_database():
                 latitude=12.884186,
                 longitude=74.855263,
             ),
+
             Truck(
                 truck_id=3,
                 vehicle_number="KA19EF9012",
@@ -43,6 +102,7 @@ def seed_database():
                 latitude=12.848650,
                 longitude=74.900550,
             ),
+
             Truck(
                 truck_id=4,
                 vehicle_number="KA19GH3456",
@@ -56,8 +116,9 @@ def seed_database():
         db.add_all(trucks)
         db.flush()
 
+
         # =========================================================
-        # DUSTBINS
+        # 3. DUSTBINS
         # =========================================================
 
         dustbins = [
@@ -70,6 +131,7 @@ def seed_database():
                 days_since_last_collection=2,
                 previous_day_fill=78.5,
             ),
+
             Dustbin(
                 dustbin_id=2,
                 latitude=12.884186,
@@ -79,6 +141,7 @@ def seed_database():
                 days_since_last_collection=2,
                 previous_day_fill=67.0,
             ),
+
             Dustbin(
                 dustbin_id=3,
                 latitude=12.848650,
@@ -88,6 +151,7 @@ def seed_database():
                 days_since_last_collection=3,
                 previous_day_fill=89.0,
             ),
+
             Dustbin(
                 dustbin_id=4,
                 latitude=12.875000,
@@ -97,6 +161,7 @@ def seed_database():
                 days_since_last_collection=1,
                 previous_day_fill=55.0,
             ),
+
             Dustbin(
                 dustbin_id=5,
                 latitude=12.857000,
@@ -106,6 +171,7 @@ def seed_database():
                 days_since_last_collection=2,
                 previous_day_fill=63.0,
             ),
+
             Dustbin(
                 dustbin_id=6,
                 latitude=12.876000,
@@ -115,6 +181,7 @@ def seed_database():
                 days_since_last_collection=3,
                 previous_day_fill=86.0,
             ),
+
             Dustbin(
                 dustbin_id=7,
                 latitude=12.900000,
@@ -124,6 +191,7 @@ def seed_database():
                 days_since_last_collection=2,
                 previous_day_fill=72.0,
             ),
+
             Dustbin(
                 dustbin_id=8,
                 latitude=12.956590,
@@ -133,6 +201,7 @@ def seed_database():
                 days_since_last_collection=4,
                 previous_day_fill=92.0,
             ),
+
             Dustbin(
                 dustbin_id=9,
                 latitude=12.998330,
@@ -142,6 +211,7 @@ def seed_database():
                 days_since_last_collection=2,
                 previous_day_fill=69.0,
             ),
+
             Dustbin(
                 dustbin_id=10,
                 latitude=12.944000,
@@ -156,8 +226,19 @@ def seed_database():
         db.add_all(dustbins)
         db.flush()
 
+
         # =========================================================
-        # DRIVERS
+        # 4. DRIVERS
+        # =========================================================
+        #
+        # Each driver is linked to a USER.
+        #
+        # user_id 2 → driver 1 → truck 1
+        # user_id 3 → driver 2 → truck 2
+        # user_id 4 → driver 3 → truck 3
+        # user_id 5 → driver 4 → truck 4
+        #
+        # Admin (user 1) does not have a driver record.
         # =========================================================
 
         drivers = [
@@ -166,34 +247,34 @@ def seed_database():
                 name="Arjun Kumar",
                 phone="9876543210",
                 truck_id=1,
+                user_id=2,
                 status="AVAILABLE",
             ),
+
             Driver(
                 driver_id=2,
                 name="Rahul Shetty",
                 phone="9876543211",
                 truck_id=2,
+                user_id=3,
                 status="AVAILABLE",
             ),
+
             Driver(
                 driver_id=3,
                 name="Vikram Rao",
                 phone="9876543212",
                 truck_id=3,
+                user_id=4,
                 status="AVAILABLE",
             ),
+
             Driver(
                 driver_id=4,
                 name="Suresh Naik",
                 phone="9876543213",
                 truck_id=4,
-                status="AVAILABLE",
-            ),
-            Driver(
-                driver_id=5,
-                name="Manoj Bhat",
-                phone="9876543214",
-                truck_id=None,
+                user_id=5,
                 status="AVAILABLE",
             ),
         ]
@@ -201,11 +282,13 @@ def seed_database():
         db.add_all(drivers)
         db.flush()
 
+
         # =========================================================
-        # DAILY PREDICTIONS
+        # 5. DAILY PREDICTIONS
         # =========================================================
 
         predictions = [
+
             # 30 AUGUST 2026
 
             DailyPrediction(
@@ -213,51 +296,61 @@ def seed_database():
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=84.0,
             ),
+
             DailyPrediction(
                 dustbin_id=2,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=73.0,
             ),
+
             DailyPrediction(
                 dustbin_id=3,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=94.0,
             ),
+
             DailyPrediction(
                 dustbin_id=4,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=61.0,
             ),
+
             DailyPrediction(
                 dustbin_id=5,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=70.0,
             ),
+
             DailyPrediction(
                 dustbin_id=6,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=91.0,
             ),
+
             DailyPrediction(
                 dustbin_id=7,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=78.0,
             ),
+
             DailyPrediction(
                 dustbin_id=8,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=96.0,
             ),
+
             DailyPrediction(
                 dustbin_id=9,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=76.0,
             ),
+
             DailyPrediction(
                 dustbin_id=10,
                 prediction_date=date(2026, 8, 30),
                 predicted_fill_percentage=99.0,
             ),
+
 
             # 31 AUGUST 2026
 
@@ -266,46 +359,55 @@ def seed_database():
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=92.0,
             ),
+
             DailyPrediction(
                 dustbin_id=2,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=81.0,
             ),
+
             DailyPrediction(
                 dustbin_id=3,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=100.0,
             ),
+
             DailyPrediction(
                 dustbin_id=4,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=69.0,
             ),
+
             DailyPrediction(
                 dustbin_id=5,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=78.0,
             ),
+
             DailyPrediction(
                 dustbin_id=6,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=98.0,
             ),
+
             DailyPrediction(
                 dustbin_id=7,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=86.0,
             ),
+
             DailyPrediction(
                 dustbin_id=8,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=100.0,
             ),
+
             DailyPrediction(
                 dustbin_id=9,
                 prediction_date=date(2026, 8, 31),
                 predicted_fill_percentage=84.0,
             ),
+
             DailyPrediction(
                 dustbin_id=10,
                 prediction_date=date(2026, 8, 31),
@@ -316,24 +418,32 @@ def seed_database():
         db.add_all(predictions)
         db.flush()
 
+
         # =========================================================
-        # ROUTES
+        # 6. ROUTES
         # =========================================================
 
         routes = [
-            # Truck 1
+
+            # -------------------------
+            # TRUCK 1
+            # Hampankatta → Kudroli → Bolar
+            # -------------------------
+
             Route(
                 truck_id=1,
                 dustbin_id=1,
                 sequence_number=1,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=1,
                 dustbin_id=6,
                 sequence_number=2,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=1,
                 dustbin_id=5,
@@ -341,19 +451,26 @@ def seed_database():
                 route_date=date(2026, 8, 30),
             ),
 
-            # Truck 2
+
+            # -------------------------
+            # TRUCK 2
+            # Kadri → Urwa → Pumpwell
+            # -------------------------
+
             Route(
                 truck_id=2,
                 dustbin_id=2,
                 sequence_number=1,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=2,
                 dustbin_id=7,
                 sequence_number=2,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=2,
                 dustbin_id=4,
@@ -361,13 +478,19 @@ def seed_database():
                 route_date=date(2026, 8, 30),
             ),
 
-            # Truck 3
+
+            # -------------------------
+            # TRUCK 3
+            # Kankanady → Surathkal
+            # -------------------------
+
             Route(
                 truck_id=3,
                 dustbin_id=3,
                 sequence_number=1,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=3,
                 dustbin_id=9,
@@ -375,13 +498,19 @@ def seed_database():
                 route_date=date(2026, 8, 30),
             ),
 
-            # Truck 4
+
+            # -------------------------
+            # TRUCK 4
+            # Baikampady → Panambur
+            # -------------------------
+
             Route(
                 truck_id=4,
                 dustbin_id=8,
                 sequence_number=1,
                 route_date=date(2026, 8, 30),
             ),
+
             Route(
                 truck_id=4,
                 dustbin_id=10,
@@ -401,17 +530,23 @@ def seed_database():
         print("======================================")
         print("Database seeded successfully!")
         print("======================================")
-        print("Trucks:        4")
-        print("Drivers:       5")
-        print("Dustbins:     10")
-        print("Predictions:  20")
-        print("Routes:       10")
+        print("Users:          5")
+        print("Admins:         1")
+        print("Drivers:        4")
+        print("Trucks:         4")
+        print("Dustbins:      10")
+        print("Predictions:   20")
+        print("Routes:        10")
         print("======================================")
 
 
     except Exception as e:
+
         db.rollback()
-        print("Error while seeding database:")
+
+        print("======================================")
+        print("ERROR SEEDING DATABASE")
+        print("======================================")
         print(e)
 
     finally:
@@ -420,4 +555,3 @@ def seed_database():
 
 if __name__ == "__main__":
     seed_database()
-

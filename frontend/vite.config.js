@@ -12,7 +12,7 @@ export default defineConfig({
       '/api': 'http://localhost:8000',
       '/auth': 'http://localhost:8000',
       '/get': 'http://localhost:8000',
-
+      '/predict-dustbin-fill': 'http://localhost:8000',
     },
   },
 })

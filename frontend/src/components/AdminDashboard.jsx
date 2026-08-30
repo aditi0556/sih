@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Navigate } from 'react-router-dom'
-import { AlertTriangle, Trash2 } from 'lucide-react'
+import { AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
@@ -62,6 +62,7 @@ export default function AdminDashboard() {
   const [dustbins, setDustbins] = useState([])
   const [hotspots, setHotspots] = useState([])
   const [error, setError] = useState('')
+  const [approving, setApproving] = useState(new Set())
 
   const isAdmin = session?.user?.role === 'admin'
 
@@ -132,6 +133,28 @@ export default function AdminDashboard() {
     }
   }, [mapReady, dustbins])
 
+  const handleApprove = async (id) => {
+    setApproving((prev) => new Set(prev).add(id))
+    try {
+      const res = await fetch(`/get/hotspots/${id}/approve`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error()
+      const newDustbin = await res.json()
+      setDustbins((prev) => [...prev, newDustbin])
+      setHotspots((prev) => prev.filter((h) => h.id !== id))
+    } catch {
+      setError((prev) => prev || 'Could not approve hotspot.')
+    } finally {
+      setApproving((prev) => {
+        const next = new Set(prev)
+        next.delete(id)
+        return next
+      })
+    }
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -168,6 +191,64 @@ export default function AdminDashboard() {
         {!mapReady && <p className="text-white/30 text-xs mt-2">Loading map…</p>}
 
         <section className="mt-16">
+          <h2 className="text-xl font-semibold text-white mb-4">Dustbins</h2>
+
+          <div className="rounded-2xl border border-white/10 overflow-hidden">
+            <table className="w-full text-sm text-left">
+              <thead className="bg-white/5 text-white/50 uppercase text-xs tracking-wider">
+                <tr>
+                  <th className="px-6 py-3 font-medium">ID</th>
+                  <th className="px-6 py-3 font-medium">Latitude</th>
+                  <th className="px-6 py-3 font-medium">Longitude</th>
+                  <th className="px-6 py-3 font-medium">Zone</th>
+                  <th className="px-6 py-3 font-medium">Population</th>
+                  <th className="px-6 py-3 font-medium">Days since collection</th>
+                  <th className="px-6 py-3 font-medium">Previous day fill</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dustbins.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} className="px-6 py-8 text-center text-white/30">
+                      No dustbins recorded yet.
+                    </td>
+                  </tr>
+                ) : (
+                  dustbins.map((bin) => (
+                    <tr
+                      key={bin.dustbin_id}
+                      className="border-t border-white/10 text-white/80 hover:bg-white/5 transition-colors"
+                    >
+                      <td className="px-6 py-3">{bin.dustbin_id}</td>
+                      <td className="px-6 py-3">{bin.latitude.toFixed(5)}</td>
+                      <td className="px-6 py-3">{bin.longitude.toFixed(5)}</td>
+                      <td className="px-6 py-3">{bin.zone_type ?? '—'}</td>
+                      <td className="px-6 py-3">{bin.population ?? '—'}</td>
+                      <td className="px-6 py-3">{bin.days_since_last_collection ?? '—'}</td>
+                      <td className="px-6 py-3">
+                        {bin.previous_day_fill != null ? (
+                          <span
+                            className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              bin.previous_day_fill >= 80
+                                ? 'bg-red-500/20 text-red-400'
+                                : 'bg-green-500/20 text-green-400'
+                            }`}
+                          >
+                            {bin.previous_day_fill}%
+                          </span>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section className="mt-16">
           <h2 className="text-xl font-semibold text-white mb-4">Hotspots</h2>
 
           <div className="rounded-2xl border border-white/10 overflow-hidden">
@@ -178,12 +259,13 @@ export default function AdminDashboard() {
                   <th className="px-6 py-3 font-medium">Latitude</th>
                   <th className="px-6 py-3 font-medium">Longitude</th>
                   <th className="px-6 py-3 font-medium">Times found dirty</th>
+                  <th className="px-6 py-3 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {hotspots.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-6 py-8 text-center text-white/30">
+                    <td colSpan={5} className="px-6 py-8 text-center text-white/30">
                       No hotspots recorded yet.
                     </td>
                   </tr>
@@ -206,6 +288,16 @@ export default function AdminDashboard() {
                         >
                           {spot.times_found_dirty}
                         </span>
+                      </td>
+                      <td className="px-6 py-3">
+                        <button
+                          onClick={() => handleApprove(spot.id)}
+                          disabled={approving.has(spot.id)}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-green-500/15 text-green-400 border border-green-500/30 hover:bg-green-500/25 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          {approving.has(spot.id) ? 'Approving…' : 'Approve'}
+                        </button>
                       </td>
                     </tr>
                   ))

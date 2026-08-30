@@ -11,6 +11,7 @@ from core.config import settings
 from core.security import create_session_token
 from db.database import get_db
 from models.user import User
+from models.driver import Driver
 from dependencies import get_current_user_optional
 from schemas.user import SignupRequest, LoginRequest, UserOut, SessionOut
 
@@ -36,6 +37,21 @@ def _set_session_cookie(response: Response, token: str) -> None:
     )
 
 
+def _create_driver_for_user(db: Session, user: User) -> Driver:
+    """Every account is also a driver profile — created once, right alongside the user."""
+    driver = Driver(
+        name=user.name,
+        phone=None,
+        status="AVAILABLE",
+        truck_id=None,
+        user_id=user.id,
+    )
+    db.add(driver)
+    db.commit()
+    db.refresh(driver)
+    return driver
+
+
 @router.post("/signup", response_model=UserOut, status_code=201)
 def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()
@@ -50,6 +66,9 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     db.add(user)
     db.commit()
     db.refresh(user)
+
+    _create_driver_for_user(db, user)
+
     return user
 
 
@@ -164,6 +183,7 @@ async def google_callback(
     if not user:
         user = db.query(User).filter(User.email == email).first()
 
+    is_new_user = False
     if user:
         if not user.google_id:
             user.google_id = google_id
@@ -179,6 +199,16 @@ async def google_callback(
         db.add(user)
         db.commit()
         db.refresh(user)
+        is_new_user = True
+
+    if is_new_user:
+        _create_driver_for_user(db, user)
+    else:
+        # Backfill: accounts created before driver auto-creation existed won't
+        # have a linked driver yet — give them one on their next Google login.
+        existing_driver = db.query(Driver).filter(Driver.user_id == user.id).first()
+        if not existing_driver:
+            _create_driver_for_user(db, user)
 
     token = create_session_token(cast(int, user.id), cast(str, user.email), cast(str, user.role))
     redirect_response = RedirectResponse(url=f"{settings.FRONTEND_ORIGIN}/dashboard")

@@ -24,3 +24,14 @@
 .animate-fade-in-up {
   animation: fade-in-up 0.7s ease-out forwards;
 }
+
+/* dark-theme the leaflet popup on the admin dashboard map */
+.leaflet-popup-content-wrapper {
+  background: #111827;
+  color: #fff;
+  border-radius: 0.75rem;
+}
+
+.leaflet-popup-tip {
+  background: #111827;
+}

@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from db.database import get_db
 from models.dustbin import Dustbin
 from models.user import User
-from dependencies import require_admin
+from dependencies import require_admin, get_current_user_optional
 from schemas.user import UserOut, PromoteRequest
 from services.pre_calculation import predict_dustbin_fill_for_date
 
@@ -57,7 +57,7 @@ def demote_to_user(
 def predict_dustbins_for_date(
     prediction_date: date | None = Query(default=None, description="Date in YYYY-MM-DD format"),
     db: Session = Depends(get_db),
-    _admin: User = Depends(require_admin),
+    _admin: User | None = Depends(get_current_user_optional),
 ):
     """Predict fill percentage for every dustbin using the saved ML pipeline and date features."""
     target_date = prediction_date or date.today()

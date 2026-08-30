@@ -11,6 +11,7 @@ from models.dustbin import Dustbin
 from models.prediction import DailyPrediction
 from models.route import Route
 from models.truck import Truck
+from services.pre_calculation import predict_dustbin_fill_for_date
 
 # Ensure routing_service is importable from backend
 root_dir = Path(__file__).resolve().parent.parent.parent
@@ -53,7 +54,17 @@ def optimize_and_save_routes(
     )
 
     if not records:
-        # Fallback: query all dustbins with default fill percentage if no prediction exists for target_date
+        # Run ML model to generate and persist predictions for target_date
+        predict_dustbin_fill_for_date(db, target_date)
+        records = (
+            db.query(Dustbin, DailyPrediction)
+            .join(DailyPrediction, Dustbin.dustbin_id == DailyPrediction.dustbin_id)
+            .filter(DailyPrediction.prediction_date == target_date)
+            .all()
+        )
+
+    if not records:
+        # Fallback: query all dustbins with default fill percentage if no prediction exists
         dustbins = db.query(Dustbin).all()
         predictions_payload = [
             {

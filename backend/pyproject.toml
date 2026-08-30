@@ -9,14 +9,18 @@ dependencies = [
     "bcrypt==4.0.1",
     "fastapi>=0.141.1",
     "httpx>=0.27.0",
+    "joblib>=1.4.0",
+    "ortools>=9.8.0",
     "pandas>=3.0.5",
     "passlib>=1.7.4",
     "psycopg2-binary>=2.9.12",
     "pydantic[email]>=2.13.5",
     "python-dotenv>=1.2.3",
     "python-multipart>=0.0.32",
+    "scikit-learn==1.6.1",
     "sqlalchemy>=2.0.52",
     "uvicorn[standard]>=0.52.4",
+    "xgboost==2.1.4",
 ]
 
 [tool.pyright]

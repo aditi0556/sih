@@ -1,27 +1,41 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, Trash2, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, Trash2, ShieldCheck, Truck, ClipboardList, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
-function GoogleIcon(props) {
-  return (
-    <svg viewBox="0 0 48 48" width="18" height="18" {...props}>
-      <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
-      <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
-      <path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.9 11.9 0 0 1 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
-      <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
-    </svg>
-  )
-}
+const ROLES = [
+  {
+    id: 'driver',
+    title: 'Driver',
+    subtitle: 'Waste Truck Driver',
+    desc: 'Access live collection routes, stop sequence & navigation map',
+    icon: Truck,
+    color: 'green',
+    targetRoute: '/driver',
+  },
+  {
+    id: 'survey',
+    title: 'Survey',
+    subtitle: 'Field Audit Team',
+    desc: 'Audit dustbin fill levels and verify ground waste hotspots',
+    icon: ClipboardList,
+    color: 'emerald',
+    targetRoute: '/survey',
+  },
 
-const perks = [
-  'Daily ML-powered bin capacity forecasts',
-  'Optimised truck routing via graph algorithms',
-  'Live interactive city map',
-  'Real-time overflow alerts',
+  {
+    id: 'admin',
+    title: 'Admin',
+    subtitle: 'Municipal Administrator',
+    desc: 'City-wide fleet overview, ML prediction & route optimization',
+    icon: ShieldCheck,
+    color: 'purple',
+    targetRoute: '/admin',
+  },
 ]
 
 export default function SignupPage() {
+  const [selectedRole, setSelectedRole] = useState('driver')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -32,6 +46,8 @@ export default function SignupPage() {
   const { signUp } = useAuth()
   const navigate = useNavigate()
 
+  const currentRoleConfig = ROLES.find((r) => r.id === selectedRole) || ROLES[0]
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -39,147 +55,224 @@ export default function SignupPage() {
       setError('Passwords do not match.')
       return
     }
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters.')
+      return
+    }
+
     setLoading(true)
     try {
-      const result = await signUp(name, email, password)
+      const result = await signUp(name, email, password, selectedRole)
       if (result.error) {
-        setError(result.error.message || 'Sign up failed. Try a different email.')
+        setError(result.error.message || 'Sign up failed. Please try a different email.')
       } else {
-        navigate('/login')
+        // Direct navigation to their chosen role dashboard
+        navigate(currentRoleConfig.targetRoute)
       }
     } catch {
-      setError('Something went wrong. Please try again.')
+      setError('Something went wrong during account creation.')
     } finally {
       setLoading(false)
     }
   }
 
-  const handleGoogleSignUp = () => {
-    // Full page navigation — the backend handles the OAuth round trip with
-    // Google and redirects back once the session cookie is set.
-    window.location.href = '/auth/google/login'
-  }
-
   return (
-    <div className="min-h-screen bg-black flex">
+    <div className="min-h-screen bg-black flex flex-col justify-center items-center py-24 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Background ambient glowing orbs */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-green-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-10 right-10 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
 
-      {/* Right form panel */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
-        <div className="w-full max-w-md">
+      <div className="w-full max-w-xl space-y-8 relative z-10">
+        {/* Header Title */}
+        <div className="text-center space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-semibold text-white/80 mb-2">
+            <Sparkles className="w-3.5 h-3.5 text-green-400" />
+            <span>Create New Account</span>
+          </div>
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-white/90 to-white/60 bg-clip-text text-transparent">
+            Join the Smart Waste Network
+          </h1>
+          <p className="text-white/50 text-sm max-w-md mx-auto">
+            Choose your role to get onboarded with the proper permissions.
+          </p>
+        </div>
 
-          {/* Mobile logo */}
-          <div className="lg:hidden flex items-center gap-2 mb-8">
-            <Trash2 className="w-5 h-5 text-green-400" />
-            <span className="text-white font-bold text-lg">Care<span className="text-green-400">India</span></span>
+        {/* ── Role Selection Tabs ────────────────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-3">
+          {ROLES.map((role) => {
+            const Icon = role.icon
+            const isSelected = selectedRole === role.id
+            return (
+              <button
+                key={role.id}
+                type="button"
+                onClick={() => setSelectedRole(role.id)}
+                className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between relative overflow-hidden ${
+                  isSelected
+                    ? role.id === 'server'
+                      ? 'bg-emerald-500/15 border-emerald-500/50 shadow-[0_0_25px_rgba(16,185,129,0.25)]'
+                      : role.id === 'admin'
+                      ? 'bg-purple-500/15 border-purple-500/50 shadow-[0_0_25px_rgba(168,85,247,0.25)]'
+                      : 'bg-green-500/15 border-green-500/50 shadow-[0_0_25px_rgba(74,222,128,0.25)]'
+                    : 'bg-white/[0.03] border-white/10 hover:border-white/20 hover:bg-white/[0.06]'
+                }`}
+              >
+                {isSelected && (
+                  <div className="absolute top-2.5 right-2.5">
+                    <CheckCircle2
+                      className={`w-4 h-4 ${
+                        role.id === 'server'
+                          ? 'text-emerald-400'
+                          : role.id === 'admin'
+                          ? 'text-purple-400'
+                          : 'text-green-400'
+                      }`}
+                    />
+                  </div>
+                )}
+
+                <div
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${
+                    isSelected
+                      ? role.id === 'server'
+                        ? 'bg-emerald-500/20 text-emerald-400'
+                        : role.id === 'admin'
+                        ? 'bg-purple-500/20 text-purple-400'
+                        : 'bg-green-500/20 text-green-400'
+                      : 'bg-white/5 text-white/50'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                </div>
+
+                <div>
+                  <h3 className="text-base font-bold text-white leading-tight">{role.title}</h3>
+                  <p className="text-[11px] text-white/50 mt-0.5">{role.subtitle}</p>
+                </div>
+              </button>
+            )
+          })}
+        </div>
+
+        {/* ── Active Form Panel ──────────────────────────────────────────── */}
+        <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-white/10 shadow-2xl space-y-6">
+          <div className="flex items-center gap-3 pb-4 border-b border-white/10">
+            <div
+              className={`p-2.5 rounded-xl ${
+                selectedRole === 'server'
+                  ? 'bg-emerald-500/20 text-emerald-400'
+                  : selectedRole === 'admin'
+                  ? 'bg-purple-500/20 text-purple-400'
+                  : 'bg-green-500/20 text-green-400'
+              }`}
+            >
+              <currentRoleConfig.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-white">
+                Registering as {currentRoleConfig.title}
+              </p>
+              <p className="text-xs text-white/50">{currentRoleConfig.desc}</p>
+            </div>
           </div>
 
-          <h1 className="text-3xl font-bold text-white mb-2">Create account</h1>
-          <p className="text-white/50 text-sm mb-8">
-            Already have an account?{' '}
-            <Link to="/login" className="text-green-400 hover:text-green-300 transition-colors">
-              Sign in
-            </Link>
-          </p>
-
           {error && (
-            <div className="mb-6 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm">
-              {error}
+            <div className="p-3.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs flex items-center gap-2">
+              <span>{error}</span>
             </div>
           )}
 
-          <button
-            type="button"
-            onClick={handleGoogleSignUp}
-            className="w-full flex items-center justify-center gap-3 py-3 mb-6 rounded-xl bg-white hover:bg-white/90 text-black font-medium text-sm transition-all duration-200"
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-
-          <div className="flex items-center gap-3 mb-6">
-            <div className="h-px flex-1 bg-white/10" />
-            <span className="text-white/30 text-xs uppercase tracking-wider">or</span>
-            <div className="h-px flex-1 bg-white/10" />
-          </div>
-
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Name */}
             <div>
-              <label className="block text-white/60 text-sm mb-2">Full name</label>
+              <label className="block text-white/60 text-xs font-medium mb-1.5">Full Name</label>
               <input
                 type="text"
                 required
                 value={name}
-                onChange={e => setName(e.target.value)}
-                placeholder="Aditi Sharma"
+                onChange={(e) => setName(e.target.value)}
+                placeholder="e.g. Ramesh Bhat"
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
               />
             </div>
 
-            {/* Email */}
             <div>
-              <label className="block text-white/60 text-sm mb-2">Email address</label>
+              <label className="block text-white/60 text-xs font-medium mb-1.5">Email Address</label>
               <input
                 type="email"
                 required
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all font-mono"
               />
             </div>
 
-            {/* Password */}
-            <div>
-              <label className="block text-white/60 text-sm mb-2">Password</label>
-              <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-white/60 text-xs font-medium mb-1.5">Password</label>
+                <div className="relative">
+                  <input
+                    type={showPass ? 'text' : 'password'}
+                    required
+                    minLength={6}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Min 6 chars"
+                    className="w-full px-4 py-3 pr-10 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(!showPass)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
+                  >
+                    {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-white/60 text-xs font-medium mb-1.5">Confirm Password</label>
                 <input
                   type={showPass ? 'text' : 'password'}
                   required
-                  minLength={8}
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  placeholder="Minimum 8 characters"
-                  className="w-full px-4 py-3 pr-12 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
+                  value={confirm}
+                  onChange={(e) => setConfirm(e.target.value)}
+                  placeholder="Repeat password"
+                  className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
                 />
-                <button
-                  type="button"
-                  onClick={() => setShowPass(!showPass)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/70 transition-colors"
-                >
-                  {showPass ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
               </div>
-            </div>
-
-            {/* Confirm password */}
-            <div>
-              <label className="block text-white/60 text-sm mb-2">Confirm password</label>
-              <input
-                type={showPass ? 'text' : 'password'}
-                required
-                value={confirm}
-                onChange={e => setConfirm(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/30 text-sm focus:outline-none focus:border-green-500/60 focus:bg-white/10 transition-all"
-              />
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 mt-2 rounded-xl bg-green-500 hover:bg-green-400 text-black font-semibold text-sm transition-all duration-200 shadow-[0_0_25px_rgba(74,222,128,0.3)] hover:shadow-[0_0_40px_rgba(74,222,128,0.5)] disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`w-full py-3.5 rounded-xl text-black font-extrabold text-sm transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 mt-2 ${
+                selectedRole === 'server'
+                  ? 'bg-emerald-400 hover:bg-emerald-300 shadow-emerald-500/20'
+                  : selectedRole === 'admin'
+                  ? 'bg-purple-400 hover:bg-purple-300 shadow-purple-500/20'
+                  : 'bg-green-400 hover:bg-green-300 shadow-green-500/20'
+              }`}
             >
-              {loading ? 'Creating account…' : 'Create Account →'}
+              {loading ? (
+                'Creating Account…'
+              ) : (
+                <>
+                  <span>Complete Registration as {currentRoleConfig.title}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
           </form>
-
-          <p className="mt-6 text-center text-white/30 text-xs">
-            By creating an account you agree to our{' '}
-            <span className="underline cursor-pointer hover:text-white/60">Terms</span> and{' '}
-            <span className="underline cursor-pointer hover:text-white/60">Privacy Policy</span>.
-          </p>
         </div>
+
+        {/* Bottom Login Link */}
+        <p className="text-center text-white/40 text-xs">
+          Already have an account?{' '}
+          <Link to="/login" className="text-green-400 hover:text-green-300 font-medium">
+            Sign in here
+          </Link>
+        </p>
       </div>
     </div>
   )

@@ -1,5 +1,11 @@
-# routing_service/test_clustering.py
-from clustering import cluster_nodes_by_h3, get_cluster_centroids, generate_h3_geojson
+try:
+    from .clustering import cluster_nodes_by_h3, get_cluster_centroids, generate_h3_geojson
+except ImportError:
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from clustering import cluster_nodes_by_h3, get_cluster_centroids, generate_h3_geojson
+
 
 def test_clustering_pipeline():
     print("=" * 55)

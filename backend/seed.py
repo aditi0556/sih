@@ -1,6 +1,7 @@
-from datetime import date
+from datetime import date, datetime, timezone
+from sqlalchemy import text
+from db.database import Base, engine, SessionLocal
 
-from db.database import SessionLocal
 
 from models.user import User
 from models.truck import Truck
@@ -8,10 +9,13 @@ from models.dustbin import Dustbin
 from models.driver import Driver
 from models.prediction import DailyPrediction
 from models.route import Route
+from models.hotspot import Hotspot
+from models.survey import SurveyAssignment, SurveyItem, SurveyLog
 
 
 def seed_database():
-
+    Base.metadata.drop_all(bind=engine)
+    Base.metadata.create_all(bind=engine)
     db = SessionLocal()
 
     try:
@@ -25,7 +29,7 @@ def seed_database():
                 id=1,
                 name="Admin",
                 email="admin@sih.com",
-                hashed_password="dummy_admin_hash",
+                hashed_password="admin123",
                 google_id=None,
                 role="admin",
             ),
@@ -34,41 +38,60 @@ def seed_database():
                 id=2,
                 name="Arjun Kumar",
                 email="arjun@sih.com",
-                hashed_password="dummy_hash_1",
+                hashed_password="driver123",
                 google_id=None,
-                role="user",
+                role="driver",
             ),
 
             User(
                 id=3,
                 name="Rahul Shetty",
                 email="rahul@sih.com",
-                hashed_password="dummy_hash_2",
+                hashed_password="driver123",
                 google_id=None,
-                role="user",
+                role="driver",
             ),
 
             User(
                 id=4,
                 name="Vikram Rao",
                 email="vikram@sih.com",
-                hashed_password="dummy_hash_3",
+                hashed_password="driver123",
                 google_id=None,
-                role="user",
+                role="driver",
             ),
 
             User(
                 id=5,
                 name="Suresh Naik",
                 email="suresh@sih.com",
-                hashed_password="dummy_hash_4",
+                hashed_password="driver123",
                 google_id=None,
-                role="user",
+                role="driver",
+            ),
+
+            User(
+                id=6,
+                name="Server Audit Team",
+                email="server@sih.com",
+                hashed_password="server123",
+                google_id=None,
+                role="server",
+            ),
+
+            User(
+                id=7,
+                name="Survey Team",
+                email="survey@sih.com",
+                hashed_password="survey123",
+                google_id=None,
+                role="server",
             ),
         ]
 
         db.add_all(users)
         db.flush()
+
 
 
         # =========================================================
@@ -520,23 +543,190 @@ def seed_database():
         ]
 
         db.add_all(routes)
+        db.flush()
 
         # =========================================================
-        # COMMIT
+        # HOTSPOTS (City Overflow / Ground Waste Points)
+        # =========================================================
+
+        hotspots = [
+            Hotspot(
+                id=1,
+                latitude=12.871500,
+                longitude=74.842500,
+                times_found_dirty=5,
+            ),
+            Hotspot(
+                id=2,
+                latitude=12.883000,
+                longitude=74.856000,
+                times_found_dirty=9,
+            ),
+            Hotspot(
+                id=3,
+                latitude=12.849000,
+                longitude=74.901200,
+                times_found_dirty=3,
+            ),
+            Hotspot(
+                id=4,
+                latitude=12.957000,
+                longitude=74.808000,
+                times_found_dirty=7,
+            ),
+            Hotspot(
+                id=5,
+                latitude=12.901000,
+                longitude=74.851000,
+                times_found_dirty=2,
+            ),
+        ]
+
+        db.add_all(hotspots)
+        db.flush()
+
+        # =========================================================
+        # WEEKLY SURVEY ASSIGNMENTS & ITEMS (Week of 2026-08-24 to 2026-08-30)
+        # =========================================================
+
+        week_mon = date(2026, 8, 24)
+
+        # Assignment 1: Arjun Kumar (Monday Survey)
+        sa1 = SurveyAssignment(
+            id=1,
+            driver_id=1,
+            assigned_to_name="Arjun Kumar",
+            week_start_date=week_mon,
+            day_of_week="Monday",
+            status="IN_PROGRESS",
+            notes="Central & Commercial Zone Ground Truth Inspection",
+            created_at=datetime.utcnow(),
+        )
+        db.add(sa1)
+        db.flush()
+
+        items1 = [
+            SurveyItem(assignment_id=sa1.id, item_type="DUSTBIN", dustbin_id=1, status="COMPLETED", recorded_fill_level=78.5, inspected_at=datetime.utcnow(), remarks="Measured via ultrasonic wand"),
+            SurveyItem(assignment_id=sa1.id, item_type="DUSTBIN", dustbin_id=6, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa1.id, item_type="HOTSPOT", hotspot_id=1, status="COMPLETED", is_hotspot_present=True, inspected_at=datetime.utcnow(), remarks="Commercial overflow observed behind market"),
+        ]
+        db.add_all(items1)
+
+        # Assignment 2: Rahul Shetty (Wednesday Survey)
+        sa2 = SurveyAssignment(
+            id=2,
+            driver_id=2,
+            assigned_to_name="Rahul Shetty",
+            week_start_date=week_mon,
+            day_of_week="Wednesday",
+            status="IN_PROGRESS",
+            notes="Residential North Sector Inspection",
+            created_at=datetime.utcnow(),
+        )
+        db.add(sa2)
+        db.flush()
+
+        items2 = [
+            SurveyItem(assignment_id=sa2.id, item_type="DUSTBIN", dustbin_id=2, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa2.id, item_type="DUSTBIN", dustbin_id=7, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa2.id, item_type="DUSTBIN", dustbin_id=4, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa2.id, item_type="HOTSPOT", hotspot_id=2, status="PENDING", is_hotspot_present=None),
+            SurveyItem(assignment_id=sa2.id, item_type="HOTSPOT", hotspot_id=5, status="PENDING", is_hotspot_present=None),
+        ]
+        db.add_all(items2)
+
+        # Assignment 3: Vikram Rao (Friday Survey)
+        sa3 = SurveyAssignment(
+            id=3,
+            driver_id=3,
+            assigned_to_name="Vikram Rao",
+            week_start_date=week_mon,
+            day_of_week="Friday",
+            status="IN_PROGRESS",
+            notes="East Suburb & Highway Inspection",
+            created_at=datetime.utcnow(),
+        )
+        db.add(sa3)
+        db.flush()
+
+        items3 = [
+            SurveyItem(assignment_id=sa3.id, item_type="DUSTBIN", dustbin_id=3, status="COMPLETED", recorded_fill_level=89.0, inspected_at=datetime.utcnow(), remarks="High commercial volume"),
+            SurveyItem(assignment_id=sa3.id, item_type="DUSTBIN", dustbin_id=9, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa3.id, item_type="HOTSPOT", hotspot_id=3, status="COMPLETED", is_hotspot_present=False, inspected_at=datetime.utcnow(), remarks="Cleaned by community team"),
+        ]
+        db.add_all(items3)
+
+        # Assignment 4: Suresh Naik (Saturday Survey)
+        sa4 = SurveyAssignment(
+            id=4,
+            driver_id=4,
+            assigned_to_name="Suresh Naik",
+            week_start_date=week_mon,
+            day_of_week="Saturday",
+            status="IN_PROGRESS",
+            notes="Industrial Belt Survey",
+            created_at=datetime.utcnow(),
+        )
+        db.add(sa4)
+        db.flush()
+
+        items4 = [
+            SurveyItem(assignment_id=sa4.id, item_type="DUSTBIN", dustbin_id=8, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa4.id, item_type="DUSTBIN", dustbin_id=10, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa4.id, item_type="DUSTBIN", dustbin_id=5, status="PENDING", recorded_fill_level=None),
+            SurveyItem(assignment_id=sa4.id, item_type="HOTSPOT", hotspot_id=4, status="PENDING", is_hotspot_present=None),
+        ]
+        db.add_all(items4)
+
+        # Initial survey audit log
+        logs = [
+            SurveyLog(item_type="DUSTBIN", target_id=1, driver_name="Arjun Kumar", recorded_fill_level=78.5, remarks="Weekly survey inspection", created_at=datetime.now(timezone.utc)),
+            SurveyLog(item_type="HOTSPOT", target_id=1, driver_name="Arjun Kumar", is_hotspot_present=True, remarks="Market waste accumulation verified", created_at=datetime.now(timezone.utc)),
+            SurveyLog(item_type="DUSTBIN", target_id=3, driver_name="Vikram Rao", recorded_fill_level=89.0, remarks="Weekly survey inspection", created_at=datetime.now(timezone.utc)),
+            SurveyLog(item_type="HOTSPOT", target_id=3, driver_name="Vikram Rao", is_hotspot_present=False, remarks="Area spotless", created_at=datetime.now(timezone.utc)),
+        ]
+        db.add_all(logs)
+
+        # =========================================================
+        # COMMIT & SYNC POSTGRES SEQUENCES
         # =========================================================
 
         db.commit()
 
+        # Fix PostgreSQL SERIAL sequences so auto-increment inserts never hit duplicate key errors
+        if db.bind and db.bind.dialect.name == "postgresql":
+            tables_and_cols = [
+                ("dustbins", "dustbin_id"),
+                ("hotspots", "id"),
+                ("users", "id"),
+                ("drivers", "driver_id"),
+                ("trucks", "truck_id"),
+                ("routes", "id"),
+                ("daily_predictions", "id"),
+                ("survey_assignments", "id"),
+                ("survey_items", "id"),
+                ("survey_logs", "id"),
+            ]
+            for table, col in tables_and_cols:
+                try:
+                    db.execute(text(f"SELECT setval(pg_get_serial_sequence('{table}', '{col}'), COALESCE((SELECT MAX({col}) FROM {table}), 1) + 1, false);"))
+                except Exception:
+                    pass
+            db.commit()
+
         print("======================================")
         print("Database seeded successfully!")
         print("======================================")
+
         print("Users:          5")
         print("Admins:         1")
         print("Drivers:        4")
         print("Trucks:         4")
         print("Dustbins:      10")
+        print("Hotspots:       5")
         print("Predictions:   20")
         print("Routes:        10")
+        print("Surveys:        4 Assignments, 14 Items")
         print("======================================")
 
 

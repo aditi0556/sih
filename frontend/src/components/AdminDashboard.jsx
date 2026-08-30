@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Navigate } from 'react-router-dom'
-import { AlertTriangle, Trash2, CheckCircle2 } from 'lucide-react'
+import { Navigate, Link } from 'react-router-dom'
+import { AlertTriangle, Trash2, CheckCircle2, Sparkles, Truck, Navigation, RefreshCw, ClipboardList } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
 
 const LEAFLET_CSS = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
@@ -133,19 +133,89 @@ export default function AdminDashboard() {
     }
   }, [mapReady, dustbins])
 
-  const handleApprove = async (id) => {
-    setApproving((prev) => new Set(prev).add(id))
+  const [optimizing, setOptimizing] = useState(false)
+  const [predicting, setPredicting] = useState(false)
+  const [toast, setToast] = useState(null)
+
+  const handlePredictDustbins = async () => {
+    setPredicting(true)
     try {
-      const res = await fetch(`/get/hotspots/${id}/approve`, {
+      const res = await fetch('/api/predict-dustbin-fill', {
         method: 'POST',
         credentials: 'include',
       })
       if (!res.ok) throw new Error()
-      const newDustbin = await res.json()
-      setDustbins((prev) => [...prev, newDustbin])
-      setHotspots((prev) => prev.filter((h) => h.id !== id))
+      const data = await res.json()
+      setToast({
+        type: 'success',
+        msg: `ML Predictions updated for ${data.total_predicted || data.predictions?.length || 0} dustbins!`
+      })
+      setTimeout(() => setToast(null), 4000)
     } catch {
-      setError((prev) => prev || 'Could not approve hotspot.')
+      setToast({
+        type: 'error',
+        msg: 'Failed to run ML fill prediction pipeline.'
+      })
+      setTimeout(() => setToast(null), 4000)
+    } finally {
+      setPredicting(false)
+    }
+  }
+
+  const handleOptimizeRoutes = async () => {
+    setOptimizing(true)
+    try {
+      const res = await fetch('/api/routing/optimize', {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setToast({
+        type: 'success',
+        msg: `Routes optimized! ${data.summary?.total_trucks_dispatched || data.saved_route_records || 4} truck routes dispatched.`
+      })
+      setTimeout(() => setToast(null), 4000)
+    } catch {
+      setToast({
+        type: 'error',
+        msg: 'Failed to run route optimization engine.'
+      })
+      setTimeout(() => setToast(null), 4000)
+    } finally {
+      setOptimizing(false)
+    }
+  }
+
+  const handleApprove = async (id) => {
+    setApproving((prev) => new Set(prev).add(id))
+    try {
+      let res = await fetch(`/get/hotspots/${id}/approve`, {
+        method: 'POST',
+        credentials: 'include',
+      })
+      if (!res.ok) {
+        res = await fetch(`/api/get/hotspots/${id}/approve`, {
+          method: 'POST',
+          credentials: 'include',
+        })
+      }
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}))
+        throw new Error(errJson.detail || `Failed to approve hotspot (Status: ${res.status})`)
+      }
+      const newDustbin = await res.json()
+      setDustbins((prev) => {
+        const exists = prev.some((d) => d.dustbin_id === newDustbin.dustbin_id)
+        return exists ? prev : [...prev, newDustbin]
+      })
+      setHotspots((prev) => prev.filter((h) => h.id !== id))
+      setToast({ type: 'success', msg: `Hotspot #${id} successfully approved and promoted to permanent dustbin!` })
+      setTimeout(() => setToast(null), 4000)
+    } catch (err) {
+      console.error('Approve hotspot error:', err)
+      setError(err.message || 'Could not approve hotspot.')
+      setTimeout(() => setError(null), 5000)
     } finally {
       setApproving((prev) => {
         const next = new Set(prev)
@@ -154,6 +224,7 @@ export default function AdminDashboard() {
       })
     }
   }
+
 
   if (loading) {
     return (
@@ -169,14 +240,80 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-black pt-28 pb-20 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center gap-2 mb-1">
-          <Trash2 className="w-5 h-5 text-green-400" />
-          <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 px-5 py-3 rounded-xl border shadow-2xl backdrop-blur-md flex items-center gap-3 transition-all animate-bounce ${
+            toast.type === 'error'
+              ? 'bg-red-500/20 border-red-500/40 text-red-300'
+              : 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300'
+          }`}
+        >
+          {toast.type === 'error' ? (
+            <AlertTriangle className="w-5 h-5 text-red-400" />
+          ) : (
+            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          )}
+          <span className="text-sm font-medium">{toast.msg}</span>
         </div>
-        <p className="text-white/50 text-sm mb-8">
-          Live dustbin locations across the city, plus zones flagged as recurring hotspots.
-        </p>
+      )}
+
+      <div className="max-w-6xl mx-auto">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Trash2 className="w-5 h-5 text-green-400" />
+              <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
+            </div>
+            <p className="text-white/50 text-sm">
+              Live dustbin locations across the city, plus zones flagged as recurring hotspots.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              onClick={handlePredictDustbins}
+              disabled={predicting}
+              className="px-4 py-2.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-300 font-bold text-xs flex items-center gap-2 transition-all cursor-pointer disabled:opacity-50"
+            >
+              {predicting ? (
+                <RefreshCw className="w-4 h-4 animate-spin text-purple-400" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-purple-400" />
+              )}
+              <span>{predicting ? 'Calculating ML Predictions…' : 'Run ML Prediction Model'}</span>
+            </button>
+
+            <button
+              onClick={handleOptimizeRoutes}
+              disabled={optimizing}
+              className="px-4 py-2.5 rounded-xl bg-green-500 hover:bg-green-400 text-black font-extrabold text-xs flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(74,222,128,0.3)] hover:shadow-[0_0_30px_rgba(74,222,128,0.5)] cursor-pointer disabled:opacity-50"
+            >
+              {optimizing ? (
+                <RefreshCw className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4" />
+              )}
+              <span>{optimizing ? 'Running ML & OR-Tools…' : 'Run Daily Route Optimization'}</span>
+            </button>
+
+            <Link
+              to="/driver"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs flex items-center gap-2 transition-all no-underline"
+            >
+              <Truck className="w-4 h-4 text-green-400" />
+              <span>View Driver Routes</span>
+            </Link>
+
+            <Link
+              to="/survey"
+              className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/15 text-white font-bold text-xs flex items-center gap-2 transition-all no-underline"
+            >
+              <ClipboardList className="w-4 h-4 text-emerald-400" />
+              <span>Survey Team</span>
+            </Link>
+          </div>
+        </div>
 
         {error && (
           <div className="mb-6 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center gap-2">

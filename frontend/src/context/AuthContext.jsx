@@ -52,13 +52,17 @@ export function AuthProvider({ children }) {
     return result
   }
 
-  const signUp = async (name, email, password) => {
-    // /auth/signup only creates the account; it doesn't log the user in.
-    return await apiFetch('/auth/signup', {
+  const signUp = async (name, email, password, role = 'driver') => {
+    const result = await apiFetch('/auth/signup', {
       method: 'POST',
-      body: JSON.stringify({ name, email, password }),
+      body: JSON.stringify({ name, email, password, role }),
     })
+    if (result.data) {
+      setSession({ user: result.data })
+    }
+    return result
   }
+
 
   const signOut = async () => {
     await apiFetch('/auth/logout', { method: 'POST' })

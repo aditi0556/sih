@@ -53,23 +53,33 @@ def _create_driver_for_user(db: Session, user: User) -> Driver:
 
 
 @router.post("/signup", response_model=UserOut, status_code=201)
-def signup(payload: SignupRequest, db: Session = Depends(get_db)):
+def signup(payload: SignupRequest, response: Response, db: Session = Depends(get_db)):
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(status_code=400, detail="An account with this email already exists")
+
+    assigned_role = (payload.role or "driver").lower()
+    if assigned_role not in ["admin", "server", "survey", "driver"]:
+        assigned_role = "driver"
 
     user = User(
         name=payload.name,
         email=payload.email,
         hashed_password=payload.password,
+        role=assigned_role,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    _create_driver_for_user(db, user)
+    if assigned_role in ["driver", "user"]:
+        _create_driver_for_user(db, user)
+
+    token = create_session_token(cast(int, user.id), cast(str, user.email), cast(str, user.role))
+    _set_session_cookie(response, token)
 
     return user
+
 
 
 @router.post("/login", response_model=SessionOut)

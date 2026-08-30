@@ -7,7 +7,13 @@ Smart Waste Management System (SIH Project)
 import h3
 import pandas as pd
 from typing import List, Dict, Any, Optional
-from .config import RoutingConfig
+
+try:
+    from .config import RoutingConfig
+except ImportError:
+    from config import RoutingConfig
+
+
 
 
 def _get_lat_lng(node: Dict[str, Any]) -> tuple:
@@ -93,6 +99,11 @@ def cluster_nodes_by_h3(
     ]
 
     final_nodes_to_visit = critical_nodes + proactive_nodes
+
+    if not final_nodes_to_visit and enriched_nodes:
+        # Fallback: Sort by fill percentage descending and select nodes >= 50% (or top nodes)
+        sorted_nodes = sorted(enriched_nodes, key=lambda x: x['fill_pct'], reverse=True)
+        final_nodes_to_visit = [n for n in sorted_nodes if n['fill_pct'] >= 50.0] or sorted_nodes[:max(1, len(sorted_nodes) // 2)]
 
     # Step 4: Group nodes into H3 clusters (Depot is index 0 in each cluster)
     clusters: Dict[str, List[Dict[str, Any]]] = {}

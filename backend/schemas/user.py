@@ -1,10 +1,15 @@
 from pydantic import BaseModel, EmailStr, Field
 
 
+from typing import Optional
+
+
 class SignupRequest(BaseModel):
     name: str = Field(min_length=1)
     email: EmailStr
-    password: str = Field(min_length=8)
+    password: str = Field(min_length=6)
+    role: Optional[str] = "driver"
+
 
 
 class LoginRequest(BaseModel):

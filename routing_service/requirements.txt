@@ -1,6 +1,6 @@
 fastapi==0.110.0
 uvicorn==0.28.0
 ortools==9.9.3963
-h3==3.7.6
+h3
 requests==2.31.0
 pydantic==2.6.4

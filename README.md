@@ -219,5 +219,3 @@ py -3 backend/verify_pipeline.py
 
 ---
 
-## License
-Cleanix is developed for Smart City Municipal Solid Waste Management. Open-source under the [MIT License](LICENSE).

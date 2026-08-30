@@ -5,9 +5,6 @@ from typing import List, Dict, Tuple, Optional
 from .config import RoutingConfig
 
 def solve_cvrp(distance_matrix: List[List[int]], demands: List[int]) -> Tuple[Optional[pywrapcp.RoutingIndexManager], Optional[pywrapcp.RoutingModel], Optional[pywrapcp.Assignment]]:
-    """
-    Solves CVRP with vehicle capacity buffer and returns manager, routing model, and solution.
-    """
     num_nodes = len(distance_matrix)
     if num_nodes <= 1:
         return None, None, None
@@ -33,11 +30,14 @@ def solve_cvrp(distance_matrix: List[List[int]], demands: List[int]) -> Tuple[Op
 
     routing.AddDimensionWithVehicleCapacity(
         demand_callback_index,
-        0,  # null capacity slack
+        0,  
         [RoutingConfig.EFFECTIVE_TRUCK_CAPACITY] * num_vehicles,
-        True,  # start cumul to zero
+        True,  
         "Capacity"
     )
+
+    # NEW: Force the solver to minimize the number of trucks used!
+    routing.SetFixedCostOfAllVehicles(100000)
 
     search_parameters = pywrapcp.DefaultRoutingSearchParameters()
     search_parameters.first_solution_strategy = (

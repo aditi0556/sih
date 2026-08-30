@@ -6,7 +6,8 @@ from sqlalchemy import (
     UniqueConstraint
 )
 
-from models.base import Base
+from db.database import Base
+
 
 
 class Route(Base):

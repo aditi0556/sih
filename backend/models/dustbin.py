@@ -5,7 +5,8 @@ from sqlalchemy import (
     Float,
     Enum,
 )
-from models.base import Base
+from db.database import Base
+
 
 
 class Dustbin(Base):

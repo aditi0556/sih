@@ -1,6 +1,8 @@
 from sqlalchemy import Column, Integer, String, Float
 from models.base import Base
 
+from db.database import Base
+
 
 class Truck(Base):
 

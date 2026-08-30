@@ -8,7 +8,9 @@ from sqlalchemy import (
     ForeignKey
 )
 
-from models.base import Base
+
+from db.database import Base
+
 
 
 class TrainingData(Base):

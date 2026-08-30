@@ -8,7 +8,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 
 from core.config import settings
-from core.security import hash_password, verify_password, create_session_token
+from core.security import create_session_token
 from db.database import get_db
 from models.user import User
 from dependencies import get_current_user_optional
@@ -45,7 +45,7 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
     user = User(
         name=payload.name,
         email=payload.email,
-        hashed_password=hash_password(payload.password),
+        hashed_password=payload.password,
     )
     db.add(user)
     db.commit()
@@ -56,7 +56,8 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 @router.post("/login", response_model=SessionOut)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
-    if not user or not user.hashed_password or not verify_password(payload.password, cast(str, user.hashed_password)):
+    if not user or not user.hashed_password or user.hashed_password != payload.password:
+
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
     token = create_session_token(cast(int, user.id), cast(str, user.email), cast(str, user.role))

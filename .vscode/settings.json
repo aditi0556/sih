@@ -1,0 +1,10 @@
+{
+  "python.analysis.extraPaths": [
+    "${workspaceFolder}",
+    ".."
+  ],
+  "pyrefly.searchPaths": [
+    "${workspaceFolder}",
+    ".."
+  ]
+}

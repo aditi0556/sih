@@ -1,6 +1,6 @@
 import requests
 from typing import List, Dict
-from config import RoutingConfig
+from .config import RoutingConfig
 
 def get_distance_matrix(nodes: List[Dict]) -> List[List[int]]:
     """

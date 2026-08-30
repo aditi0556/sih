@@ -17,3 +17,10 @@ dependencies = [
     "sqlalchemy>=2.0.52",
     "uvicorn[standard]>=0.52.4",
 ]
+
+[tool.pyright]
+extraPaths = [".."]
+
+[tool.pyrefly]
+search_paths = [".."]
+

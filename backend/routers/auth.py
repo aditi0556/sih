@@ -1,4 +1,5 @@
 import secrets
+from typing import cast
 from urllib.parse import urlencode
 
 import httpx
@@ -56,9 +57,10 @@ def signup(payload: SignupRequest, db: Session = Depends(get_db)):
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == payload.email).first()
     if not user or not user.hashed_password or user.hashed_password != payload.password:
+
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    token = create_session_token(user.id, user.email, user.role)
+    token = create_session_token(cast(int, user.id), cast(str, user.email), cast(str, user.role))
     _set_session_cookie(response, token)
     return {"user": user}
 
@@ -178,7 +180,7 @@ async def google_callback(
         db.commit()
         db.refresh(user)
 
-    token = create_session_token(user.id, user.email, user.role)
+    token = create_session_token(cast(int, user.id), cast(str, user.email), cast(str, user.role))
     redirect_response = RedirectResponse(url=f"{settings.FRONTEND_ORIGIN}/dashboard")
     _set_session_cookie(redirect_response, token)
     redirect_response.delete_cookie(OAUTH_STATE_COOKIE_NAME, path="/")

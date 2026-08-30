@@ -15,3 +15,4 @@ class User(Base):
     google_id = Column(String, unique=True, index=True, nullable=True)
     role = Column(String, nullable=False, default="user")  # "user" or "admin"
     created_at = Column(DateTime, default=datetime.utcnow)
+

@@ -2,7 +2,7 @@
 from ortools.constraint_solver import routing_enums_pb2
 from ortools.constraint_solver import pywrapcp
 from typing import List, Dict, Tuple, Optional
-from config import RoutingConfig
+from .config import RoutingConfig
 
 def solve_cvrp(distance_matrix: List[List[int]], demands: List[int]) -> Tuple[Optional[pywrapcp.RoutingIndexManager], Optional[pywrapcp.RoutingModel], Optional[pywrapcp.Assignment]]:
     """

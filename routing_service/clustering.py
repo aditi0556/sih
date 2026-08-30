@@ -7,7 +7,7 @@ Smart Waste Management System (SIH Project)
 import h3
 import pandas as pd
 from typing import List, Dict, Any, Optional
-from config import RoutingConfig
+from .config import RoutingConfig
 
 
 def _get_lat_lng(node: Dict[str, Any]) -> tuple:

@@ -9,8 +9,9 @@ export default defineConfig({
   ],
   server: {
     proxy: {
-      '/api': 'http://localhost:8000',
-      '/auth': 'http://localhost:8000',
+      '/api': 'http://localhost:3001',
+      '/auth': 'http://localhost:3001',
+      '/admin': 'http://localhost:3001',
     },
   },
 })

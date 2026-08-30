@@ -37,8 +37,8 @@ def generate_optimized_routes(depot: Dict[str, Any], predictions: List[Dict[str,
         # Generate distance matrix via OSRM
         distance_matrix = get_distance_matrix(cluster_nodes)
         
-        # Extract demands using the fallback logic in clustering.py
-        demands = [node.get('predicted_fill_pct', node.get('fill_pct', node.get('demand', 0))) for node in cluster_nodes]
+        # Extract demands as integers using the fallback logic in clustering.py
+        demands = [int(node.get('predicted_fill_pct', node.get('fill_pct', node.get('demand', 0)))) for node in cluster_nodes]
 
         # Solve VRP with OR-Tools
         manager, routing, solution = solve_cvrp(distance_matrix, demands)

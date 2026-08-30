@@ -1,7 +1,7 @@
 # routing_service/route_formatter.py
 import requests
 from typing import List, Dict
-from config import RoutingConfig
+from .config import RoutingConfig
 
 def fetch_osrm_geometry(ordered_stops: List[Dict]) -> Dict:
     """
